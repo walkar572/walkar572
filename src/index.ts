@@ -1,9 +1,9 @@
-export function once(target: any, key: string, descriptor: PropertyDescriptor): PropertyDescriptor {
+export function once(_target: object, _key: string, descriptor: PropertyDescriptor): PropertyDescriptor {
   let called = false;
-  let result: any;
-  const originalMethod = descriptor.value;
+  let result: unknown;
+  const originalMethod = descriptor.value as Function;
 
-  descriptor.value = function (...args: any[]): any {
+  descriptor.value = function (this: unknown, ...args: unknown[]): unknown {
     if (!called) {
       called = true;
       result = originalMethod.apply(this, args);
@@ -15,11 +15,15 @@ export function once(target: any, key: string, descriptor: PropertyDescriptor): 
 }
 
 export function identifier(uid: string) {
-  return function <T extends { new(...args: any[]): {} }>(constructor: T) {
+  return function <T extends { new(...args: any[]): object }>(constructor: T) {
     return class extends constructor {
-      identify() {
+      constructor(...args: any[]) {
+        super(...args);
+      }
+
+      identify(): string {
         return `${constructor.name}-${uid}`;
       }
-    };
+    } as T;
   };
 }
